@@ -472,29 +472,29 @@ echo "Making the written script executable"
 chmod 777 lkp.sh
 '
 echo "Creating a service to run lkp"
-
+cp /$loc/lkp-tests/lkp.sh /var/lib/lkprun.sh
 cd /etc/systemd/system/
-touch lkp.service
-truncate -s 0 lkp.service
+touch lkprun.service
+truncate -s 0 lkprun.service
 check_exit
-echo -e "[Unit]" >> lkp.service
-echo -e "Description=LKP Tests Service" >> lkp.service
-echo -e "After=network.target" >> lkp.service
-echo -e "\n" >> lkp.service
-echo -e "[Service]" >> lkp.service
-echo -e "WorkingDirectory=$loc/lkp-tests" >> lkp.service
-echo -e "ExecStart=/bin/bash $loc/lkp-tests/lkp.sh" >> lkp.service
-echo -e "\n" >> lkp.service 
-echo -e "[Install]" >> lkp.service
-echo -e "WantedBy=multi-user.target" >> lkp.service
+echo -e "[Unit]" >> lkprun.service
+echo -e "Description=LKP Tests Service" >> lkprun.service
+echo -e "After=network.target" >> lkprun.service
+echo -e "\n" >> lkprun.service
+echo -e "[Service]" >> lkprun.service
+echo -e "WorkingDirectory=/var/lib" >> lkprun.service
+echo -e "ExecStart=/bin/bash /var/lib/lkprun.sh" >> lkprun.service
+echo -e "\n" >> lkprun.service 
+echo -e "[Install]" >> lkprun.service
+echo -e "WantedBy=multi-user.target" >> lkprun.service
 
 if [[ "$servi" == "yes" || "$servi" == "y" ]]; then
 	echo "Reloading daemon"
 	systemctl daemon-reload
 	echo "Enabling lkp service"
-	systemctl enable lkp.service
+	systemctl enable lkprun.service
 	echo "Starting lkp service"
-	systemctl start lkp.service
+	systemctl start lkprun.service
 	check_exit
 	echo " "
 else
