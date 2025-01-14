@@ -450,6 +450,10 @@ echo "}" >> lkp.sh
 echo "" >> lkp.sh
 echo "run_tests" >> lkp.sh
 
+temp_state=$(echo /var/lib/lkp-automation-data/state-files/main-state)
+state_value=$((temp_state + 1))
+echo "echo '$state_value' >> /var/log/lkp-automation-data/reboot-log" >> lkp.sh
+
 chmod 777 $loc/lkp-tests/lkp.sh
 
 
