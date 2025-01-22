@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+PASS=$1
 STOP_FILE="/tmp/stop_lkp_script"
 
 # Function to check if the stop file exists
