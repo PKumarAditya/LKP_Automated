@@ -339,34 +339,48 @@ check_exit
 echo " "
 echo "Installing test-cases"
 
-# Function to display loading animation
-loading_animation() {
-    local delay=0.1
-    local spinstr='|/-\'
-    while :; do
-        for ((i=0; i<${#spinstr}; i++)); do
-            printf "\r%s" "${spinstr:$i:1}"
-            sleep $delay
-        done
-    done
-}
-
 # Start loading animation in the background
 loading_animation &
 # Save the PID of the loading animation process
 spinner_pid=$!
 
-# Simulate a long-running process (replace with your actual command)
-echo "---------This might take a while, please wait while the process completes........"
-lkp install $loc/lkp-tests/splits/hackbench-pipe-8-process-100%.yaml &> /dev/null
-lkp install $loc/lkp-tests/splits/ebizzy-10s-100x-200%.yaml &> /dev/null
-lkp install $loc/lkp-tests/splits/unixbench-100%-300s-arithoh.yaml &> /dev/null
-check_exit
-# Stop the loading animation
-kill "$spinner_pid" > /dev/null 2>&1
+wlkp=$(which lkp)
+rlkp="/usr/local/bin/lkp"
+whack=$(which hackbench)
+rhack="/usr/local/bin/hackbench"
 
-# Clean up the line after animation
-echo -e "\rDone!     "
+if [[ -x "$rlkp" && -x "$rhack" ]]; then
+	echo "lkp and hackbench already present skipping the installation"
+else
+	# Function to display loading animation
+	loading_animation() {
+    		local delay=0.1
+    		local spinstr='|/-\'
+    		while :; do
+	        for ((i=0; i<${#spinstr}; i++)); do
+	            printf "\r%s" "${spinstr:$i:1}"
+	            sleep $delay
+	        done
+	    done
+	}
+	
+	# Start loading animation in the background
+	loading_animation &
+	# Save the PID of the loading animation process
+	spinner_pid=$!
+
+	# Simulate a long-running process (replace with your actual command)
+	echo "---------This might take a while, please wait while the process completes........"
+	lkp install $loc/lkp-tests/splits/hackbench-pipe-8-process-100%.yaml &> /dev/null
+	lkp install $loc/lkp-tests/splits/ebizzy-10s-100x-200%.yaml &> /dev/null
+	lkp install $loc/lkp-tests/splits/unixbench-100%-300s-arithoh.yaml &> /dev/null
+	check_exit
+	# Stop the loading animation
+	kill "$spinner_pid" > /dev/null 2>&1
+
+	# Clean up the line after animation
+	echo -e "\rDone!     "
+fi
 
 echo " "
 echo "=========================="
