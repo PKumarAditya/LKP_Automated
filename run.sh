@@ -5,7 +5,6 @@ export HISTIGNORE='*sudo -S*'
 # Get the distribution name
 distro=$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2)
 user=$(echo $USER)
-PASS=$(cat /tmp/PASS)
 echo " "
 # Print the distribution name
 #echo "Distribution: $distro"
@@ -20,9 +19,9 @@ echo "DISTRO FOUND: $distro"
 echo "CURRENT USER: $user"
 echo " "
 if [ "$distro" == "ubuntu" ]; then
-	echo "$PASS" | sudo -S $loc/ubuntu-lkp-automation.sh $PASS
+	sudo $loc/ubuntu-lkp-automation.sh
 else
-	echo "$PASS" | sudo -S $loc/centos-lkp-automation.sh $PASS
+	sudo $loc/centos-lkp-automation.sh
 fi
 
 
