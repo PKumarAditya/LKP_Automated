@@ -21,18 +21,6 @@ servi="yes"
 loc=$(cd ../ && pwd)
 
 
-wlkp=$(which lkp)
-rlkp="/usr/local/bin/lkp"
-whack=$(which hackbench)
-rhack="/usr/local/bin/hackbench"
-if [[ -x "$rlkp" && -x "$rhack" ]]; then
-        echo "lkp and hackbench already present skipping the installation of dependencies."
-else
-	chmod +x $loc/LKP_Automated/centos-deps.sh
-	sudo $loc/LKP_Automated/centos-deps.sh
-fi
-
-
 echo " "
 echo "============================================"
 echo "Cloning into the LKP-Tests Directory"
@@ -44,8 +32,24 @@ check_exit
 cd $loc
 
 git clone https://github.com/intel/lkp-tests/
+cd $loc/lkp-tests
+sudo make install
+
 check_exit
 echo " "
+
+
+wlkp=$(which lkp)
+rlkp="/usr/local/bin/lkp"
+whack=$(which hackbench)
+rhack="/usr/local/bin/hackbench"
+if [[ -x "$rlkp" && -x "$rhack" ]]; then
+        echo "lkp and hackbench already present skipping the installation of dependencies."
+else
+        chmod +x $loc/LKP_Automated/centos-deps.sh
+        sudo $loc/LKP_Automated/centos-deps.sh
+fi
+
 echo "==========================================================="
 echo "Modifying the installation files in the lkp-tests directory"
 echo "==========================================================="
