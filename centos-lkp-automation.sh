@@ -29,7 +29,7 @@ if [[ -x "$rlkp" && -x "$rhack" ]]; then
         echo "lkp and hackbench already present skipping the installation of dependencies."
 else
 	chmod +x $loc/LKP_Automated/centos-deps.sh
-	$loc/LKP_Automated/centos-deps.sh
+	sudo $loc/LKP_Automated/centos-deps.sh
 fi
 
 
