@@ -216,19 +216,41 @@ echo "#!/bin/bash" > "$LKP_SCRIPT"
 echo "STATE_FILE=\"$loc/lkp-tests/progress.txt\"" >> "$LKP_SCRIPT"
 
 # Start the test cases array
+
+
 echo "test_cases=(" >> "$LKP_SCRIPT"
 
 # Collect test case files
 files=$(ls "$loc/lkp-tests/splits/")
 file_array=($files)
 
-# Add test cases to the array
+# Append test cases starting with 'h' first
 for test_case in "${file_array[@]}"
 do
-   echo "    \"lkp run $loc/lkp-tests/splits/$test_case\"" >> "$LKP_SCRIPT"
+    if [[ $test_case == h* ]]; then
+        echo "    \"lkp run $loc/lkp-tests/splits/$test_case\"" >> "$LKP_SCRIPT"
+    fi
+done
+
+# Append test cases starting with 'e' second
+for test_case in "${file_array[@]}"
+do
+    if [[ $test_case == e* ]]; then
+        echo "    \"lkp run $loc/lkp-tests/splits/$test_case\"" >> "$LKP_SCRIPT"
+    fi
+done
+
+# Append all remaining test cases last
+for test_case in "${file_array[@]}"
+do
+    if [[ $test_case != h* && $test_case != e* ]]; then
+        echo "    \"lkp run $loc/lkp-tests/splits/$test_case\"" >> "$LKP_SCRIPT"
+    fi
 done
 
 echo ")" >> "$LKP_SCRIPT"
+
+
 
 # Function to get last completed test
 cat <<'EOF' >> "$LKP_SCRIPT"
@@ -297,7 +319,7 @@ run_tests() {
         touch /lkp/result/test.result
         convert_elapsed_time "/tmp/lkp.time"
         y=$(cat /tmp/lkp-type)
-        echo "$y,$(cat /tmp/lkp.result)" >> /lkp/result/test.result
+        echo "$(cat /tmp/lkp.result)" >> /lkp/result/test.result
 
         rm -rf /lkp/result/hackbench/*
         rm -rf /lkp/result/ebizzy/*
@@ -313,7 +335,7 @@ run_tests() {
 
     rm -f "$STATE_FILE"
 }
-
+rm -rf /lkp/result/test.result
 run_tests
 echo '' >> /var/log/lkp-automation-data/reboot-log
 EOF
