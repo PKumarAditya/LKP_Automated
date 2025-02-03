@@ -206,73 +206,123 @@ echo "Unixbench"
 echo " "
 echo "Writing into lkp.sh"
 
+# Define the script location
+LKP_SCRIPT="$loc/lkp-tests/lkp.sh"
 
-echo "#!/bin/bash" >> lkp.sh
-echo "STATE_FILE=\"$loc/lkp-tests/progress.txt\"" >> lkp.sh
-echo "test_cases=(" >> lkp.sh
-echo "Creating a service file for running gthe script"
+# Create the script file and add the shebang
+echo "#!/bin/bash" > "$LKP_SCRIPT"
+
+# Define the state file
+echo "STATE_FILE=\"$loc/lkp-tests/progress.txt\"" >> "$LKP_SCRIPT"
+
+# Start the test cases array
+echo "test_cases=(" >> "$LKP_SCRIPT"
+
+# Collect test case files
 files=$(ls "$loc/lkp-tests/splits/")
 file_array=($files)
 
+# Add test cases to the array
 for test_case in "${file_array[@]}"
 do
-   echo "    \"lkp run $loc/lkp-tests/splits/$test_case\"" >> lkp.sh
+   echo "    \"lkp run $loc/lkp-tests/splits/$test_case\"" >> "$LKP_SCRIPT"
 done
-echo ")" >> lkp.sh
-:'
-# Add the loop to run the test cases
-echo "for test_case in \"\${test_cases[@]}\"; do" >> lkp.sh
-echo "    echo \"Running: \$test_case\"" >> lkp.sh
-echo "    \$test_case" >> lkp.sh
-echo "    if [ \$? -eq 0 ]; then" >> lkp.sh
-echo "        echo \"\$test_case completed successfully.\" >> \$STATE_FILE" >> lkp.sh
-echo "    else" >> lkp.sh
-echo "        echo \"\$test_case failed.\" >> \$STATE_FILE" >> lkp.sh
-echo "    fi" >> lkp.sh
-echo "done" >> lkp.sh
-'
-# Append the get_last_completed and run_tests functions
-echo "get_last_completed() {" >> lkp.sh
-echo "    if [ -f \"\$STATE_FILE\" ]; then" >> lkp.sh
-echo "        cat \"\$STATE_FILE\"" >> lkp.sh
-echo "    else" >> lkp.sh
-echo "        echo \"\"  # No progress made yet" >> lkp.sh
-echo "    fi" >> lkp.sh
-echo "}" >> lkp.sh
-echo "" >> lkp.sh
 
-echo "# Function to run tests" >> lkp.sh
-echo "run_tests() {" >> lkp.sh
-echo "    local last_completed=\$(get_last_completed)" >> lkp.sh
-echo "    local start_index=0" >> lkp.sh
-echo "" >> lkp.sh
-echo "    # Find the index of the last completed test" >> lkp.sh
-echo "    for i in \"\${!test_cases[@]}\"; do" >> lkp.sh
-echo "        if [[ \"\${test_cases[\$i]}\" == \"\$last_completed\" ]]; then" >> lkp.sh
-echo "            start_index=\$((i + 1))" >> lkp.sh
-echo "            break" >> lkp.sh
-echo "        fi" >> lkp.sh
-echo "    done" >> lkp.sh
-echo "" >> lkp.sh
-echo "    # Run tests starting from where it left off" >> lkp.sh
-echo "    for (( i = start_index; i < \${#test_cases[@]}; i++ )); do" >> lkp.sh
-echo "        echo \"Running: \${test_cases[\$i]}\"" >> lkp.sh
-echo "        \${test_cases[\$i]}" >> lkp.sh
-#echo "        lkp run \"\${test_cases[\$i]}\"" >> lkp.sh
-echo "        if [ \$? -eq 0 ]; then" >> lkp.sh
-echo "            echo \"\${test_cases[\$i]}\" > \"\$STATE_FILE\"" >> lkp.sh
-echo "        else" >> lkp.sh
-echo "            echo \"Test failed, stopping execution.\"" >> lkp.sh
-echo "            exit 1" >> lkp.sh
-echo "        fi" >> lkp.sh
-#echo "        echo \"\${test_cases[\$i]}\" > \"\$STATE_FILE\"" >> lkp.sh
-echo "    done" >> lkp.sh
-echo "" >> lkp.sh
-echo "    # Clean up the state file if all tests are completed" >> lkp.sh
-echo "    rm -f \"\$STATE_FILE\"" >> lkp.sh
-echo "}" >> lkp.sh
-echo "" >> lkp.sh
-echo "run_tests" >> lkp.sh
+echo ")" >> "$LKP_SCRIPT"
+
+# Function to get last completed test
+cat <<'EOF' >> "$LKP_SCRIPT"
+get_last_completed() {
+    if [ -f "$STATE_FILE" ]; then
+        cat "$STATE_FILE"
+    else
+        echo ""  # No progress made yet
+    fi
+}
+
+convert_elapsed_time() {
+    local file=$1
+    local elapsed_time=$(grep "Elapsed" "$file" | awk '{print $8}')
+    local IFS=':'
+    local time_parts=()
+    read -r -a time_parts <<< "$elapsed_time"
+
+    local hours=0
+    local minutes=0
+    local seconds=0
+
+    if [ ${#time_parts[@]} -eq 3 ]; then
+        hours=${time_parts[0]}
+        minutes=${time_parts[1]}
+        seconds=${time_parts[2]}
+    elif [ ${#time_parts[@]} -eq 2 ]; then
+        minutes=${time_parts[0]}
+        seconds=${time_parts[1]}
+    else
+        seconds=${time_parts[0]}
+    fi
+
+    local total_seconds=$((hours * 3600 + minutes * 60 + seconds))
+    echo "$total_seconds" > /tmp/lkp.result
+}
+
+extract_test_info() {
+    local full_test_case=$1
+    local test_case_string=$(echo "$full_test_case" | sed -E 's/.*\/splits\///')
+    local test=$(echo "$test_case_string" | awk -F'-' '{print $1}')
+    local type=$(echo "$test_case_string" | sed -E 's/^[^-]+-(.*)\.yaml/\1/')
+
+    find /lkp/result/$test/$type/ -name "*.time" > /tmp/file.name
+    cat $(cat /tmp/file.name) > /tmp/lkp.time
+    rm -rf /tmp/file.name
+
+    echo "$type" > /tmp/lkp-type
+}
+
+run_tests() {
+    local last_completed=$(get_last_completed)
+    local start_index=0
+
+    for i in "${!test_cases[@]}"; do
+        if [[ "${test_cases[$i]}" == "$last_completed" ]]; then
+            start_index=$((i + 1))
+            break
+        fi
+    done
+
+    for (( i = start_index; i < ${#test_cases[@]}; i++ )); do
+        echo "Running: ${test_cases[$i]}"
+        ${test_cases[$i]}
+        extract_test_info "${test_cases[$i]}"
+        touch /lkp/result/test.result
+        convert_elapsed_time "/tmp/lkp.time"
+        y=$(cat /tmp/lkp-type)
+        echo "$y,$(cat /tmp/lkp.result)" >> /lkp/result/test.result
+
+        rm -rf /lkp/result/hackbench/*
+        rm -rf /lkp/result/ebizzy/*
+        rm -rf /lkp/result/unibench/*    
+
+        if [ $? -eq 0 ]; then
+            echo "${test_cases[$i]}" > "$STATE_FILE"
+        else
+            echo "Test failed, stopping execution."
+            exit 1
+        fi
+    done
+
+    rm -f "$STATE_FILE"
+}
+
+run_tests
+echo '' >> /var/log/lkp-automation-data/reboot-log
+EOF
+
+# Make the script executable
+chmod 777 "$LKP_SCRIPT"
+
+
+
 
 temp_state=$(echo /var/lib/lkp-automation-data/state-files/main-state)
 state_value=$((temp_state + 1))

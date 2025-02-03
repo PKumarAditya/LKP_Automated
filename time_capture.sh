@@ -27,5 +27,4 @@ fi
 total_seconds=$(echo "$hours * 3600 + $minutes * 60 + $seconds" | bc)
 rounded_seconds=$(echo "scale=0; $total_seconds / 1" | bc)
 
-echo $rounded_seconds
-
+echo $rounded_seconds >> /tmp/lkp.result
