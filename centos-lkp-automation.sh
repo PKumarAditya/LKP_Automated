@@ -351,7 +351,7 @@ chmod 777 "$LKP_SCRIPT"
 
 
 
-temp_state=$(echo /var/lib/lkp-automation-data/state-files/main-state)
+temp_state=$(cat /var/lib/lkp-automation-data/state-files/main-state)
 state_value=$((temp_state + 1))
 echo "echo '$state_value' >> /var/log/lkp-automation-data/reboot-log" >> lkp.sh
 
