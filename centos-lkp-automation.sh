@@ -50,6 +50,11 @@ else
         sudo $loc/LKP_Automated/centos-deps.sh
 fi
 
+if [[ ! -d "/var/log/lkp-automation-data" ]]; then
+	mkdir -p /var/log/lkp-automation-data
+	touch /var/log/lkp-automation-data/reboot-log
+fi
+
 echo "==========================================================="
 echo "Modifying the installation files in the lkp-tests directory"
 echo "==========================================================="
@@ -213,7 +218,7 @@ LKP_SCRIPT="$loc/lkp-tests/lkp.sh"
 echo "#!/bin/bash" > "$LKP_SCRIPT"
 
 # Define the state file
-echo "STATE_FILE=\"$loc/lkp-tests/progress.txt\"" >> "$LKP_SCRIPT"
+echo "STATE_FILE=\"/var/local/lkp-progress.txt\"" >> "$LKP_SCRIPT"
 
 # Start the test cases array
 
