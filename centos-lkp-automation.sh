@@ -358,20 +358,6 @@ echo "echo '$state_value' >> /var/log/lkp-automation-data/reboot-log" >> lkp.sh
 chmod 777 $loc/lkp-tests/lkp.sh
 
 
-:'echo "#!/bin/bash" >> lkp.sh
-
-files=$(ls "$loc/lkp-tests/splits/")
-
-file_array=($files)
-check_exit
-for test_case in "${file_array[@]}"
-do
-  echo "lkp run $loc/lkp-tests/splits/$test_case" >> lkp.sh
-done
-check_exit
-echo "Making the written script executable"
-chmod 777 lkp.sh
-'
 echo "Creating a service to run lkp"
 cp /$loc/lkp-tests/lkp.sh /var/lib/lkprun.sh
 cd /etc/systemd/system/
