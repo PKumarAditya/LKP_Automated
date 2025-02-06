@@ -403,6 +403,7 @@ else
 	echo "  systemctl enable lkp.service"
 	echo "  systemctl start lkp.service"
 	echo " "
+fi
 
 echo "===================================="
 echo "------------------------------------"
