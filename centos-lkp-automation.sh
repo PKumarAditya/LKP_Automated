@@ -148,11 +148,6 @@ check_exit
 echo " "
 echo "Installing test-cases"
 
-# Start loading animation in the background
-loading_animation &
-# Save the PID of the loading animation process
-spinner_pid=$!
-
 if [[ -x "$rlkp" && -x "$rhack" ]]; then
 	echo "lkp and hackbench already present skipping the installation"
 else
