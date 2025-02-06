@@ -278,6 +278,7 @@ convert_elapsed_time() {
     local minutes=0
     local seconds=0
 
+    # Parse time parts based on format (h:m:s or m:s or s)
     if [ ${#time_parts[@]} -eq 3 ]; then
         hours=${time_parts[0]}
         minutes=${time_parts[1]}
@@ -289,7 +290,23 @@ convert_elapsed_time() {
         seconds=${time_parts[0]}
     fi
 
-    local total_seconds=$((hours * 3600 + minutes * 60 + seconds))
+    # Convert everything to seconds using bc for decimal handling
+    local total_seconds=$(echo "$hours * 3600 + $minutes * 60 + $seconds" | bc)
+
+    # Round the decimal part if present
+    if [[ $total_seconds == *"."* ]]; then
+        # Extract decimal part
+        local decimal_part=$(echo "$total_seconds" | awk -F. '{print $2}')
+        local integer_part=$(echo "$total_seconds" | awk -F. '{print $1}')
+
+        # If decimal >= 5, round up, else round down
+        if [ ${decimal_part:0:1} -ge 5 ]; then
+            total_seconds=$((integer_part + 1))
+        else
+            total_seconds=$integer_part
+        fi
+    fi
+
     echo "$total_seconds" > /tmp/lkp.result
 }
 
