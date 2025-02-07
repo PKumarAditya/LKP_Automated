@@ -418,24 +418,24 @@ echo "echo '$state_value' >> /var/log/lkp-automation-data/reboot-log" >> lkp.sh
 chmod 777 $loc/lkp-tests/lkp.sh
 
 
-echo "Creating a service to run lkp"
-cp /$loc/lkp-tests/lkp.sh /var/lib/lkprun.sh
-cd /etc/systemd/system/
-touch lkprun.service
-truncate -s 0 lkprun.service
-check_exit
-echo -e "[Unit]" >> lkprun.service
-echo -e "Description=LKP Tests Service" >> lkprun.service
-echo -e "After=network.target" >> lkprun.service
-echo -e "\n" >> lkprun.service
-echo -e "[Service]" >> lkprun.service
-echo -e "WorkingDirectory=/var/lib" >> lkprun.service
-echo -e "ExecStart=/bin/bash /var/lib/lkprun.sh" >> lkprun.service
-echo -e "\n" >> lkprun.service 
-echo -e "[Install]" >> lkprun.service
-echo -e "WantedBy=multi-user.target" >> lkprun.service
 
 if [[ "$servi" == "yes" || "$servi" == "y" ]]; then
+	echo "Creating a service to run lkp"
+	cp /$loc/lkp-tests/lkp.sh /var/lib/lkprun.sh
+	cd /etc/systemd/system/
+	touch lkprun.service
+	truncate -s 0 lkprun.service
+	check_exit
+	echo -e "[Unit]" >> lkprun.service
+	echo -e "Description=LKP Tests Service" >> lkprun.service
+	echo -e "After=network.target" >> lkprun.service
+	echo -e "\n" >> lkprun.service
+	echo -e "[Service]" >> lkprun.service
+	echo -e "WorkingDirectory=/var/lib" >> lkprun.service
+	echo -e "ExecStart=/bin/bash /var/lib/lkprun.sh" >> lkprun.service
+	echo -e "\n" >> lkprun.service
+	echo -e "[Install]" >> lkprun.service
+	echo -e "WantedBy=multi-user.target" >> lkprun.service
 	echo "Reloading daemon"
 	systemctl daemon-reload
 	echo "Enabling lkp service"
@@ -444,30 +444,26 @@ if [[ "$servi" == "yes" || "$servi" == "y" ]]; then
 	systemctl start lkprun.service
 	check_exit
 	echo " "
-else
-	echo "Created service file but didnot start the service"
-	echo "--- start it use the below commands ---"
-	echo "  systemctl daemon-reload"
-	echo "  systemctl enable lkp.service"
-	echo "  systemctl start lkp.service"
+	echo "===================================="
+	echo "------------------------------------"
 	echo " "
+	echo "-----To find the results run the file /lkp/result/result.sh you will get the sorted results.-----"
+	echo " "
+	echo "use the below to stop the service or to stop running the lkp test-cases"
+	echo "          sudo systemctl stop lkp.service"
+	echo "use the below to disable the service"
+	echo "          sudo systemctl disable lkp.service"
+	echo " "
+	
+	echo "///////Note: The service created will auto-matically run when the system is started, to disable it use the above command mentioned /////////"
+	echo " "
+	echo "------------------------------------"
+	echo "===================================="
+else
+	echo "============================"
+	echo "Service file is not created "
+	echo "============================"
 fi
-
-echo "===================================="
-echo "------------------------------------"
-echo " "
-echo "-----To find the results run the file /lkp/result/result.sh you will get the sorted results.-----"
-echo " "
-echo "use the below to stop the service or to stop running the lkp test-cases"
-echo "		sudo systemctl stop lkp.service"
-echo "use the below to disable the service"
-echo "		sudo systemctl disable lkp.service"
-echo " "
-
-echo "///////Note: The service created will auto-matically run when the system is started, to disable it use the above command mentioned /////////"
-echo " "
-echo "------------------------------------"
-echo "===================================="
 
 sleep 5
 
