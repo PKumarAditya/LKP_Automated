@@ -212,12 +212,30 @@ LKP_SCRIPT="$loc/lkp-tests/lkp.sh"
 # Create the script file and add the shebang
 echo "#!/bin/bash" > "$LKP_SCRIPT"
 
-# Define the state file
-echo "STATE_FILE=\"/var/local/lkp-progress.txt\"" >> "$LKP_SCRIPT"
+# Add error handling
+echo "set -euo pipefail" >> "$LKP_SCRIPT"
+
+# Define constants
+cat <<'EOF' >> "$LKP_SCRIPT"
+readonly STATE_FILE="/var/local/lkp-progress.txt"
+readonly RESULT_DIR="/lkp/result"
+
+# Verify required directories exist
+for dir in "${RESULT_DIR}" "/var/local" "/tmp"; do
+    if [[ ! -d "$dir" ]]; then
+        echo "Error: Required directory $dir does not exist" >&2
+        exit 1
+    fi
+done
+
+# Verify lkp command exists
+if ! command -v lkp >/dev/null 2>&1; then
+    echo "Error: 'lkp' command not found" >&2
+    exit 1
+fi
+EOF
 
 # Start the test cases array
-
-
 echo "test_cases=(" >> "$LKP_SCRIPT"
 
 # Collect test case files
@@ -250,15 +268,13 @@ done
 
 echo ")" >> "$LKP_SCRIPT"
 
-
-
-# Function to get last completed test
+# Add all the functions
 cat <<'EOF' >> "$LKP_SCRIPT"
 get_last_completed() {
-    if [ -f "$STATE_FILE" ]; then
-        cat "$STATE_FILE"
+    if [[ -f "$STATE_FILE" ]]; then
+        cat "$STATE_FILE" || echo ""
     else
-        echo ""  # No progress made yet
+        echo ""
     fi
 }
 
@@ -318,48 +334,80 @@ extract_test_info() {
     echo "$type" > /tmp/lkp-type
 }
 
+cleanup_test_results() {
+    local test=$1
+    local result_dir="${RESULT_DIR}/${test}"
+    
+    if [[ -d "$result_dir" ]]; then
+        rm -rf "$result_dir"/* || {
+            echo "Warning: Failed to clean up $result_dir" >&2
+            return 1
+        }
+    fi
+}
+
 run_tests() {
-    local last_completed=$(get_last_completed)
+    local last_completed
     local start_index=0
-
-    for i in "${!test_cases[@]}"; do
-        if [[ "${test_cases[$i]}" == "$last_completed" ]]; then
-            start_index=$((i + 1))
-            break
-        fi
-    done
-
+    local test_result_file="${RESULT_DIR}/test.result"
+    
+    last_completed=$(get_last_completed)
+    
+    # Find starting point if there was a previous run
+    if [[ -n "$last_completed" ]]; then
+        for i in "${!test_cases[@]}"; do
+            if [[ "${test_cases[$i]}" == "$last_completed" ]]; then
+                start_index=$((i + 1))
+                break
+            fi
+        done
+    fi
+    
+    # Only delete test.result file if we're starting from the beginning
+    if [ "$start_index" -eq 0 ]; then
+        rm -f "$test_result_file"
+    fi
+    
     for (( i = start_index; i < ${#test_cases[@]}; i++ )); do
-        echo "Running: ${test_cases[$i]}"
-        ${test_cases[$i]}
-        extract_test_info "${test_cases[$i]}"
+        local current_test="${test_cases[$i]}"
+        echo "Running: $current_test"
+        
+        ${current_test}
+        extract_test_info "$current_test"
         touch /lkp/result/test.result
         convert_elapsed_time "/tmp/lkp.time"
         y=$(cat /tmp/lkp-type)
         echo "$(cat /tmp/lkp.result)" >> /lkp/result/test.result
-
+        
+        # Cleanup test directories
         rm -rf /lkp/result/hackbench/*
         rm -rf /lkp/result/ebizzy/*
-        rm -rf /lkp/result/unibench/*    
-
+        rm -rf /lkp/result/unixbench/*
+        
         if [ $? -eq 0 ]; then
-            echo "${test_cases[$i]}" > "$STATE_FILE"
+            echo "$current_test" > "$STATE_FILE"
         else
-            echo "Test failed, stopping execution."
+            echo "Error: Test execution failed for $current_test" >&2
             exit 1
         fi
     done
-
+    
+    # Cleanup state file after successful completion
     rm -f "$STATE_FILE"
 }
-rm -rf /lkp/result/test.result
+
+# Main execution
 run_tests
-echo '' >> /var/log/lkp-automation-data/reboot-log
+
+# Update reboot log
+{
+    echo ''
+    echo '2'
+} >> /var/log/lkp-automation-data/reboot-log
 EOF
 
 # Make the script executable
 chmod 777 "$LKP_SCRIPT"
-
 
 
 
