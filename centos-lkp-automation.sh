@@ -207,7 +207,7 @@ echo " "
 echo "Writing into lkp.sh"
 
 # Define the script location
-LKP_SCRIPT="$loc/lkp-tests/lkp.sh"
+LKP_SCRIPT="/var/lib/lkprun.sh"
 
 # Create the script file and add the shebang
 echo "#!/bin/bash" > "$LKP_SCRIPT"
@@ -414,10 +414,6 @@ chmod 777 "$LKP_SCRIPT"
 temp_state=$(cat /var/lib/lkp-automation-data/state-files/main-state)
 state_value=$((temp_state + 1))
 echo "echo '$state_value' >> /var/log/lkp-automation-data/reboot-log" >> lkp.sh
-
-chmod 777 $loc/lkp-tests/lkp.sh
-
-
 
 if [[ "$servi" == "yes" || "$servi" == "y" ]]; then
 	echo "Creating a service to run lkp"
