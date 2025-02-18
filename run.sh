@@ -1,4 +1,5 @@
 #!/bin/bash
+build_home=$1
 pip install pyfiglet &> /dev/null
 python -m pyfiglet "LKP TESTS"
 export HISTIGNORE='*sudo -S*'
@@ -23,14 +24,14 @@ if command -v apt >/dev/null 2>&1; then
 	echo "Detected Debian based system"
 	echo "----------------------------"
 	echo ""
-	sudo $loc/ubuntu-lkp-automation.sh
+	sudo $loc/ubuntu-lkp-automation.sh $build_home
 elif command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
         echo "--------------------------"
         echo "Detected RHEL based system"
         echo "--------------------------"
         echo ""
 
-	sudo $loc/centos-lkp-automation.sh
+	sudo $loc/centos-lkp-automation.sh $build_home
 else
 	echo "Unsupported system"
 fi

@@ -1,7 +1,12 @@
-#!/bin/bash
+/#!/bin/bash
 
 STOP_FILE="/tmp/stop_lkp_script"
 
+build_home=$1
+mkdir -p $build_home/results
+mkdir -p $build_home/results/hackbench/
+mkdir -p $build_home/results/ebizzy/
+mkdir -p $build_home/results/unixbench/
 # Function to check if the stop file exists
 check_exit() {
     if [ -f "$STOP_FILE" ]; then
@@ -50,9 +55,9 @@ else
         sudo $loc/LKP_Automated/centos-deps.sh
 fi
 
-if [[ ! -d "/var/log/lkp-automation-data" ]]; then
-	mkdir -p /var/log/lkp-automation-data
-	touch /var/log/lkp-automation-data/reboot-log
+if [[ ! -d "$build_home/lkp-automation-data/logs" ]]; then
+	mkdir -p $build_home/lkp-automation-data/logs
+	touch $build_home/lkp-automation-data/logs/reboot-log
 fi
 
 echo "==========================================================="
@@ -207,8 +212,8 @@ echo " "
 echo "Writing into lkp.sh"
 
 # Define the script location
-LKP_SCRIPT="/var/lib/lkprun.sh"
-
+LKP_SCRIPT="$build_home/lkp-automation-data/lkprun.sh"
+touch $LKP_SCRIPT
 # Create the script file and add the shebang
 echo "#!/bin/bash" > "$LKP_SCRIPT"
 
@@ -217,11 +222,11 @@ echo "set -euo pipefail" >> "$LKP_SCRIPT"
 
 # Define constants
 cat <<'EOF' >> "$LKP_SCRIPT"
-readonly STATE_FILE="/var/local/lkp-progress.txt"
+readonly STATE_FILE="$build_home/lkp-automation-data/lkp-progress.txt"
 readonly RESULT_DIR="/lkp/result"
 
 # Verify required directories exist
-for dir in "${RESULT_DIR}" "/var/local" "/tmp"; do
+for dir in "${RESULT_DIR}" "$build_home/lkp-automation-data" "/tmp"; do
     if [[ ! -d "$dir" ]]; then
         echo "Error: Required directory $dir does not exist" >&2
         exit 1
@@ -373,6 +378,9 @@ run_tests() {
         echo "Running: $current_test"
         
         ${current_test}
+	cp /lkp/result/hackbench/* $build_home/results/hackbench/*
+        cp /lkp/result/ebizzy/* $build_home/results/ebizzy/*
+        cp /lkp/result/unixbench/* $build_home/results/unixbench/*
         extract_test_info "$current_test"
         touch /lkp/result/test.result
         convert_elapsed_time "/tmp/lkp.time"
@@ -403,7 +411,7 @@ run_tests
 {
     echo ''
     echo '2'
-} >> /var/log/lkp-automation-data/reboot-log
+} >> $log
 EOF
 
 # Make the script executable
@@ -411,13 +419,13 @@ chmod 777 "$LKP_SCRIPT"
 
 
 
-temp_state=$(cat /var/lib/lkp-automation-data/state-files/main-state)
+temp_state=$(cat $build_home/lkp-automation-data/state-files/main-state)
 state_value=$((temp_state + 1))
-echo "echo '$state_value' >> /var/log/lkp-automation-data/reboot-log" >> lkp.sh
+echo "echo '$state_value' >> $build_home/lkp-automation-data/logs/reboot-log" >> lkp.sh
 
 if [[ "$servi" == "yes" || "$servi" == "y" ]]; then
 	echo "Creating a service to run lkp"
-	cp /$loc/lkp-tests/lkp.sh /var/lib/lkprun.sh
+	cp /$loc/lkp-tests/lkp.sh $build_home/lkp-automation-data/lkprun.sh
 	cd /etc/systemd/system/
 	touch lkprun.service
 	truncate -s 0 lkprun.service
@@ -427,8 +435,8 @@ if [[ "$servi" == "yes" || "$servi" == "y" ]]; then
 	echo -e "After=network.target" >> lkprun.service
 	echo -e "\n" >> lkprun.service
 	echo -e "[Service]" >> lkprun.service
-	echo -e "WorkingDirectory=/var/lib" >> lkprun.service
-	echo -e "ExecStart=/bin/bash /var/lib/lkprun.sh" >> lkprun.service
+	echo -e "WorkingDirectory=$build_home/lkp-automation-data" >> lkprun.service
+	echo -e "ExecStart=/bin/bash $build_home/lkp-automation-data/lkprun.sh" >> lkprun.service
 	echo -e "\n" >> lkprun.service
 	echo -e "[Install]" >> lkprun.service
 	echo -e "WantedBy=multi-user.target" >> lkprun.service
