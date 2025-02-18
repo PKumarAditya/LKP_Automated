@@ -381,9 +381,9 @@ run_tests() {
         echo "Running: $current_test"
         
         ${current_test}
-	cp -r /lkp/result/hackbench/* $build_home/results/hackbench/*
-        cp -r /lkp/result/ebizzy/* $build_home/results/ebizzy/*
-        cp -r /lkp/result/unixbench/* $build_home/results/unixbench/*
+	cp -r /lkp/result/hackbench/* $build_home/results/hackbench/
+        cp -r /lkp/result/ebizzy/* $build_home/results/ebizzy/
+        cp -r /lkp/result/unixbench/* $build_home/results/unixbench/
         extract_test_info "$current_test"
         touch /lkp/result/test.result
         convert_elapsed_time "/tmp/lkp.time"
