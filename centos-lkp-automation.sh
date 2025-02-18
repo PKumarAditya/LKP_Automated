@@ -1,8 +1,10 @@
-/#!/bin/bash
+#!/bin/bash
 
 STOP_FILE="/tmp/stop_lkp_script"
 
 build_home=$1
+cd $build_home
+echo "$build_home" > /var/local/build_home
 mkdir -p $build_home/results
 mkdir -p $build_home/results/hackbench/
 mkdir -p $build_home/results/ebizzy/
@@ -222,6 +224,7 @@ echo "set -euo pipefail" >> "$LKP_SCRIPT"
 
 # Define constants
 cat <<'EOF' >> "$LKP_SCRIPT"
+build_home=$(cat /var/local/build_home)
 readonly STATE_FILE="$build_home/lkp-automation-data/lkp-progress.txt"
 readonly RESULT_DIR="/lkp/result"
 
