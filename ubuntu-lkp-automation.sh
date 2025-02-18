@@ -7,6 +7,9 @@ mkdir -p $build_home/results/
 mkdir -p $build_home/results/hackbench/
 mkdir -p $build_home/results/ebizzy/
 mkdir -p $build_home/results/unixbench/
+mkdir -p /lkp/result/hackbench/
+mkdir -p /lkp/result/ebizzy/
+mkdir -p /lkp/result/unixbench/
 # Function to check if the stop file exists
 check_exit() {
     if [ -f "$STOP_FILE" ]; then
