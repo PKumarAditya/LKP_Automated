@@ -479,5 +479,3 @@ sleep 5
 
 mkdir -p /lkp/result/
 
-cp $loc/LKP_Automated/result.sh /lkp/result/
-
