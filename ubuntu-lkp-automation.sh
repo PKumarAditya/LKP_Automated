@@ -430,11 +430,6 @@ run_tests() {
 # Main execution
 run_tests
 
-# Update reboot log
-{
-    echo ''
-    echo '2'
-} >> $log
 EOF
 
 # Make the script executable
