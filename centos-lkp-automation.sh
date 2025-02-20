@@ -5,7 +5,9 @@ STOP_FILE="/tmp/stop_lkp_script"
 build_home=$1
 cd $build_home
 echo "$build_home" > /var/local/build_home
-mkdir -p $build_home/results
+if [ ! -d "$build_home/results" ]; then
+	mkdir -p "$build_home/results"
+fi
 mkdir -p $build_home/results/hackbench/
 mkdir -p $build_home/results/ebizzy/
 mkdir -p $build_home/results/unixbench/
