@@ -271,13 +271,6 @@ files=$(ls "$loc/lkp-tests/splits/")
 file_array=($files)
 
 # Append test cases starting with 'h' first
-for test_case in "${file_array[@]}"
-do
-    if [[ $test_case == h* ]]; then
-        echo "    \"lkp run $loc/lkp-tests/splits/$test_case\"" >> "$LKP_SCRIPT"
-    fi
-done
-
 # Append test cases starting with 'e' second
 for test_case in "${file_array[@]}"
 do
@@ -287,13 +280,6 @@ do
 done
 
 # Append all remaining test cases last
-for test_case in "${file_array[@]}"
-do
-    if [[ $test_case != h* && $test_case != e* ]]; then
-        echo "    \"lkp run $loc/lkp-tests/splits/$test_case\"" >> "$LKP_SCRIPT"
-    fi
-done
-
 echo ")" >> "$LKP_SCRIPT"
 
 # Add all the functions
