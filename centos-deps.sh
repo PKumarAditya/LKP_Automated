@@ -218,4 +218,6 @@ bundler _2.5.29_ install &> /dev/null
 check_exit
 echo "installing llvm-devel"
 yum install -y llvm-devel &> /dev/null
+echo "install gem git"
+gem install git
 echo " "
