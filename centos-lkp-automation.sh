@@ -417,7 +417,6 @@ echo "echo '$state_value' >> /var/log/lkp-automation-data/reboot-log" >> lkp.sh
 
 if [[ "$servi" == "yes" || "$servi" == "y" ]]; then
 	echo "Creating a service to run lkp"
-	cp /$loc/lkp-tests/lkp.sh /var/lib/lkprun.sh
 	cd /etc/systemd/system/
 	touch lkprun.service
 	truncate -s 0 lkprun.service
