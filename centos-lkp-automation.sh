@@ -60,6 +60,9 @@ echo "Modifying the installation files in the lkp-tests directory"
 echo "==========================================================="
 echo " "
 cd $loc/lkp-tests
+echo "Resetting the Repository head to the working version of the lkp"
+git reset --hard 0bcdf89
+
 echo "Creating a new file with the distro name for installation in installer directory"
 cp $loc/lkp-tests/distro/installer/centos $loc/lkp-tests/distro/installer/opencloudos
 cp $loc/lkp-tests/distro/installer/centos $loc/lkp-tests/distro/installer/anolis

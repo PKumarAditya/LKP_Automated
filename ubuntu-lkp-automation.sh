@@ -42,6 +42,10 @@ check_exit
 git clone https://github.com/intel/lkp-tests.git
 check_exit
 cd $loc/lkp-tests
+
+echo "Reseting the repo head to the working version of lkp"
+git reset --hard 0bcdf89
+
 echo "Changing the rt-tests source link to older source"
 filename="$loc/lkp-tests/programs/hackbench/pkg/PKGBUILD"
 line_number=10
